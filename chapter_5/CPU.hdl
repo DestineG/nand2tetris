@@ -1,0 +1,102 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/5/CPU.hdl
+/**
+ * The Hack Central Processing unit (CPU).
+ * Parses the binary code in the instruction input and executes it according to the
+ * Hack machine language specification. In the case of a C-instruction, computes the
+ * function specified by the instruction. If the instruction specifies to read a memory
+ * value, the inM input is expected to contain this value. If the instruction specifies
+ * to write a value to the memory, sets the outM output to this value, sets the addressM
+ * output to the target address, and asserts the writeM output (when writeM = 0, any
+ * value may appear in outM).
+ * If the reset input is 0, computes the address of the next instruction and sets the
+ * pc output to that value. If the reset input is 1, sets pc to 0.
+ * Note: The outM and writeM outputs are combinational: they are affected by the
+ * instruction's execution during the current cycle. The addressM and pc outputs are
+ * clocked: although they are affected by the instruction's execution, they commit to
+ * their new values only in the next cycle.
+ */
+CHIP CPU {
+
+    IN  inM[16],         // M value input  (M = contents of RAM[A])
+        instruction[16], // Instruction for execution
+        reset;           // Signals whether to re-start the current
+                         // program (reset==1) or continue executing
+                         // the current program (reset==0).
+
+    OUT outM[16],        // M value output
+        writeM,          // Write to M? 
+        addressM[15],    // Address in data memory (of M)
+        pc[15];          // address of next instruction
+
+    PARTS:
+	//// Replace this comment with your code.
+
+    // ARegister(in= , load= , out= );
+    // DRegister(in= , load= , out= );
+    // PC(in= , load= , inc= , reset= , out= );
+
+    // ########## 加载 ARegister ##########
+    // 构造 AR 输入；A 指令输入为 instruction；C 指令输入为 ALUout
+    Mux16(a=instruction, b=ALUout, sel=instruction[15], out=ARin);
+    // 构造 AR load 标志; A指令必定load，C指令只有在 instruction[5] = 1 时 load
+    // instruction[15] instruction[5] load
+    //       0               0          1
+    //       0               1          1
+    //       1               0          0
+    //       1               1          1
+    Not(in=instruction[15], out=isA);
+    And(a=instruction[15], b=true, out=isC);
+    Or(a=isA, b=instruction[5], out=ARload);
+    // 加载 AR
+    ARegister(in=ARin, load=ARload, out=ARout, out[0..14]=addressM);
+
+    // ########## 计算 ALUlowin ##########
+    // ALUlowin 的输入为 ARout/inM；选择标志为 instruction[12]
+    Mux16(a=ARout, b=inM, sel=instruction[12], out=ALUlowin);
+
+    // ########## 计算 ALUhighin ##########
+    // DR 的输入为 ALUout；load 标志为 instruction[4]; 仅在 C 指令时 load
+    And(a=isC, b=instruction[4], out=loadD);
+    DRegister(in=ALUout, load=loadD, out=ALUhighin);
+
+    // ALU 计算
+    ALU(x=ALUhighin, y=ALUlowin, zx=instruction[11], nx=instruction[10], zy=instruction[9], ny=instruction[8], f=instruction[7], no=instruction[6], out=ALUout, out=outM, zr=Zero, ng=Neg);
+    // 输出 writeM=instruction[3]; addressM=ARout;仅在 C 指令 writeM 有效
+    And(a=isC, b=instruction[3], out=writeM);
+
+    // ########## PC 更新逻辑 ##########
+    // 由于没有观察到 jjj 的特性，初始实现想法为每种条件单独处理
+    // 这一段代码由自己实现太复杂，于是交由Gemini实现
+    // instruction[0..2]=000 : PC + 1
+    // instruction[0..2]=001 : if 非负&不等于0 PC = ARout
+    // instruction[0..2]=010 : if 等于0 PC = ARout
+    // instruction[0..2]=011 : if 非负 PC = ARout
+    // instruction[0..2]=100 : if 负 PC = ARout
+    // instruction[0..2]=101 : if 不等于0 PC = ARout
+    // instruction[0..2]=110 : if 负 或者 等于0 PC = ARout
+    // instruction[0..2]=111 : PC = ARout
+    
+    // 1. 获取当前 ALU 输出的状态
+    Not(in=Zero, out=notZero);
+    Not(in=Neg, out=notNeg);
+    And(a=notZero, b=notNeg, out=pos);    // 既不等于0也不是负数 = 正数
+
+    // 2. 将跳转位（j1, j2, j3）与状态结合
+    And(a=instruction[2], b=Neg, out=j1); // j1: instruction[2] 是小于 0 则跳
+    And(a=instruction[1], b=Zero, out=j2);// j2: instruction[1] 是等于 0 则跳
+    And(a=instruction[0], b=pos, out=j3); // j3: instruction[0] 是大于 0 则跳
+
+    // 3. 判断是否符合任一跳转条件
+    Or(a=j1, b=j2, out=j12);
+    Or(a=j12, b=j3, out=jumpMaybe);
+    
+    // 4. 必须是 C 指令才允许跳转 (关键！)
+    And(a=isC, b=jumpMaybe, out=pcLoad);
+    
+    // 5. 如果不跳转，则默认自增
+    // 注意：在 PC 芯片设计中，如果 load=1，inc 就会被忽略，所以 inc 直接给 true
+    PC(in=ARout, load=pcLoad, inc=true, reset=reset, out[0..14]=pc);
+}
