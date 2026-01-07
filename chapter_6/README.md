@@ -94,4 +94,4 @@ python chapter_6/parser.py chapter_6/Mult.asm
 把“人类可读的汇编程序”成功翻译为“机器可执行的二进制代码”，
 非常适合之后在做虚拟机、编译器等章节时进行对比和复习。
 
-
+A 指令隐含了一个读取内存的操作，A register 始终对 address M 使能，而 address M 始终对 inM 使能；当内存地址加载到 A register 时，内存地址会自动传给 address M，inM 会自动更新为 A register 指向的地址
