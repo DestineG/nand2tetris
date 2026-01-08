@@ -10,7 +10,7 @@
 - **支持的指令类型**
   - **算术与逻辑运算**
     - `add`、`sub`、`neg`：基本算术运算
-    - `eq`、`gt`、`lt`：比较运算（结果为 -1 表示真，0 表示假）
+    - `eq`、`gt`、`lt`：比较运算（结果为 -1 表示真，0 表示假，运算结果保存至栈顶）
     - `and`、`or`、`not`：按位逻辑运算
   - **内存访问指令**
     - `push <segment> <index>` / `pop <segment> <index>`  
@@ -23,7 +23,7 @@
     - `function <name> <nLocals>`：定义函数，初始化局部变量为 0
     - `call <name> <nArgs>`：调用函数，保存调用者状态
     - `return`：函数返回，恢复调用者状态
-
+![call 指令内存视图](./figures/call%20指令内存视图.drawio.png)
 ---
 
 ### 代码结构
