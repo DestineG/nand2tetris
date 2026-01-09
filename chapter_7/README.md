@@ -23,7 +23,9 @@
     - `function <name> <nLocals>`：定义函数，初始化局部变量为 0
     - `call <name> <nArgs>`：调用函数，保存调用者状态
     - `return`：函数返回，恢复调用者状态
+
 ![call 指令内存视图](./figures/call%20指令内存视图.drawio.png)
+
 ---
 
 ### 代码结构
@@ -97,6 +99,11 @@ parse_vm_file(
   - ✅ `StaticTest` - 静态变量测试（static 段）
 
 所有生成的 `.asm` 文件已通过对应的 `.cmp` 对比文件验证，测试结果完全匹配。
+
+- **fibonacci 程序测试**
+  - 使用官方提供的 fibonacci.vm 进行翻译执行(需要手动在翻译结果前面加上`@Sys.init\n0;JMP\n`，因为 parser 并未实现自动跳转至`Sys.init`)
+  - ✅ fibonacci_4.asm 在 CPU Emulator 执行结果为 4 (位于RAM[256])
+  - ✅ fibonacci_10.asm 在 CPU Emulator 执行结果为 55 (位于RAM[256])
 
 ---
 

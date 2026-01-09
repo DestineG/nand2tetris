@@ -93,6 +93,6 @@ def parse_vm_file(file_path, output_path=None):
     return res
     
 if __name__ == "__main__":
-    vm_path = r"chapter_7\MemoryAccess\BasicTest\BasicTest.vm"
-    output_path = r"chapter_7\MemoryAccess\BasicTest\BasicTest.asm"
+    vm_path = r"chapter_7\fibonacci.vm"
+    output_path = r"chapter_7\fibonacci.asm"
     parse_vm_file(vm_path, output_path)

@@ -557,7 +557,7 @@ class FunctionCalling:
             f"D=M\n"
             f"@R14\n"
             f"M=D\n"
-            # 获取返回值 *(func_ARG + 0) = pop()；函数返回值放到调用者的栈顶
+            # 获取返回值 *(func_ARG + 0) = pop()；函数返回值在 return 之前被函数放到自身栈顶，此处将返回值取出放到调用者栈顶，也就是函数 func_ARG 指向的位置
             f"@SP\n"
             f"M=M-1\n"
             f"A=M\n"

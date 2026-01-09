@@ -59,7 +59,7 @@ def build_symbol_table(pseudo_instructions, pure_instructions):
                 next_variable_address += 1
     return symbol_table
 
-# 符号替换 将伪指令符号变量符号预变量符号
+# 符号替换 将伪指令符号变量符号预变量符号替换为对应地址
 def replace_symbols(pure_instructions, symbol_table):
     replaced_instructions = []
     for instruction in pure_instructions:
