@@ -69,14 +69,22 @@ def vm_translator(input_path, output_path):
         bootstrap_code = generate_bootstrap_code(None)
 
     final_asm = bootstrap_code + vm2asm_output
-    if output_path:
+    if output_path and output_path.endswith('.asm'):
         with open(output_path, 'w', encoding='utf-8') as f:
             f.write(final_asm)
+
+    if output_path and output_path.endswith('.hack'):
+        temp_asm_path = output_path.replace('.hack', '.asm')
+        with open(temp_asm_path, 'w', encoding='utf-8') as f:
+            f.write(final_asm)
+        final_bin = hack_assembler(temp_asm_path, output_path)
+        os.remove(temp_asm_path)
+        return final_bin
+
     return final_asm
 
 
 if __name__ == "__main__":
-    # chapter_8\FunctionCalls\SimpleFunction\SimpleFunction.vm
-    input_path = r"chapter_8\FunctionCalls\StaticsTest"
-    output_path = r"chapter_8\FunctionCalls\StaticsTest\StaticsTest.asm"
+    input_path = r"chapter_8\FunctionCalls\FibonacciElement"
+    output_path = r"chapter_8\FunctionCalls\FibonacciElement\FibonacciElement.hack"
     vm_translator(input_path, output_path)
