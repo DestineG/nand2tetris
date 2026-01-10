@@ -1,0 +1,27 @@
+class Main {
+    static int functionCallCount;
+    function void main() {
+        let functionCallCount = 0;
+        return;
+    }
+
+    function int fabonacci(int n) {
+        let functionCallCount = functionCallCount + 1;
+        if (n < 2) {
+            return n;
+        }
+        return Main.fabonacci(n - 1) + Main.fabonacci(n - 2);
+    }
+
+    function int factorial(int n) {
+        let functionCallCount = functionCallCount + 1;
+        if (n < 2) {
+            return 1;
+        }
+        return n * Main.factorial(n - 1);
+    }
+
+    function int getFunctionCallCount() {
+        return functionCallCount;
+    }
+}

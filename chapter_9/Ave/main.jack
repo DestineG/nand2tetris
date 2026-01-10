@@ -1,0 +1,23 @@
+class Main {
+    function void main() {
+        var Array numbers;
+        var length, i, sum, ave;
+        let length = 5;
+        let i = 0;
+        let sum = 0;
+        let numbers = Array.new(length);
+        while(i < length) {
+            let numbers[i] = i * 2;
+            let i = i + 1;
+        }
+        let i = 0;
+        while(i < length) {
+            let sum = sum + numbers[i];
+            let i = i + 1;
+        }
+        let ave = sum / length;
+        do Output.printString("Average is: ");
+        do Output.printInt(ave);
+        return;
+    }
+}
