@@ -1,0 +1,6 @@
+// 这就是 5 个常见的 Statement 例子：
+let x = 5;                        // LetStatement
+do Output.printInt(x);            // DoStatement
+if (x > 0) { let x = x - 1; }     // IfStatement
+while (x > 0) { let x = x - 1; }  // WhileStatement
+return;                           // ReturnStatement
