@@ -1,5 +1,7 @@
 # chapter_10/utils/utils.py
 
+import re
+
 def remove_comments_and_whitespace(lines):
     cleaned_lines = []
     in_block_comment = False
@@ -44,3 +46,33 @@ def remove_comments_and_whitespace(lines):
             cleaned_lines.append(result)
 
     return cleaned_lines
+
+# 定义 Jack 语言中所有可能的 Token 形状
+TOKEN_REGEX = re.compile(
+    r'(?P<keyword>while|if|else|let|do|method|function|constructor|int|boolean|char|void|var|static|field|class|return|true|false|null|this)'
+    r'|(?P<symbol>[{}()\[\].,;+\-*/&|<>=~])'
+    r'|(?P<integerConstant>\d+)'
+    r'|(?P<stringConstant>"[^"\n]*")'
+    r'|(?P<identifier>[a-zA-Z_][a-zA-Z0-9_]*)'
+)
+
+def tokenize(lines):
+    all_code = " ".join(lines)
+    tokens = []
+    
+    # 使用 finditer 像扫描仪一样从头扫到尾
+    for match in TOKEN_REGEX.finditer(all_code):
+        for name, value in match.groupdict().items():
+            if value is not None:
+                # 字符串常量需要特殊处理：去掉引号
+                if name == "stringConstant":
+                    tokens.append((name, value[1:-1]))
+                else:
+                    tokens.append((name, value))
+                break
+    return tokens
+
+def skip_whitespace(s: str, i: int) -> int:
+    while i < len(s) and s[i].isspace():
+        i += 1
+    return i
