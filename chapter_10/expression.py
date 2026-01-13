@@ -100,7 +100,13 @@ def handle_expression(expr):
                 res += "<term>\n"
                 res += "<integerConstant>" + part + "</integerConstant>\n"
                 res += "</term>\n"
-            # 3. 数组访问
+            # 3. 一元运算符
+            elif part.startswith(("-", "~")):
+                res += "<term>\n"
+                res += "<symbol>" + part[0] + "</symbol>\n"
+                res += handle_expression(part[1:].strip())
+                res += "</term>\n"
+            # 4. 数组访问
             elif "[" in part and part.endswith("]"):
                 var, index = part.split("[", 1)
                 index = index[:-1].strip()
@@ -110,7 +116,7 @@ def handle_expression(expr):
                 res += handle_expression(index)
                 res += "<symbol>]</symbol>\n"
                 res += "</term>\n"
-            # 4. 子程序调用
+            # 5. 子程序调用
             elif "(" in part and part.endswith(")"):
                 call, args = part.split("(", 1)
                 args = args[:-1].strip()
@@ -126,17 +132,11 @@ def handle_expression(expr):
                 res += handle_expressionList(args)
                 res += "<symbol>)</symbol>\n"
                 res += "</term>\n"
-            # 5. 普通标识符
+            # 6. 普通标识符
             else:
-                if part.startswith(("-", "~")):
-                    res += "<term>\n"
-                    res += "<symbol>" + part[0] + "</symbol>\n"
-                    res += handle_expression(part[1:].strip())
-                    res += "</term>\n"
-                else:
-                    res += "<term>\n"
-                    res += "<identifier>" + part + "</identifier>\n"
-                    res += "</term>\n"
+                res += "<term>\n"
+                res += "<identifier>" + part + "</identifier>\n"
+                res += "</term>\n"
     
     return (
         "<expression>\n"
@@ -206,6 +206,6 @@ if __name__ == "__main__":
     #     print("Expression:", expr)
     #     print(handle_expression(expr))
     #     print("-----")
-    expr = '-x'
+    expr = '-(a + b)'
     print("Expression:", expr)
     print(handle_expression(expr))
