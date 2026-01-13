@@ -18,18 +18,34 @@ def is_wrapped_by_parentheses(expr: str) -> bool:
 
     return count == 0
 
-xml_escape_table = {
-    "&": "&amp;",
-    ">": "&gt;",
-    "<": "&lt;",
-}
+# 判断 expr[i] 处的 '-' 或 '~' 是否为 unary op
+# 即判断其前面是否为表达式结束符号
+def is_unary_op(expr, i):
+    # expr[i] 是 '-' 或 '~'
+    if i == 0:
+        return True
+
+    j = i - 1
+    while j >= 0 and expr[j].isspace():
+        j -= 1
+
+    if j < 0:
+        return True
+
+    return expr[j] in "(,[+-*/&|<>="
+
 def handle_expression(expr):
     # 合法性检查
     assert type(expr) == str, "Expression must be a string"
     expr = expr.strip()
     
-    # 拆分 part
     operators = set("+-*/&|<>=")
+    xml_escape_table = {
+        "&": "&amp;",
+        ">": "&gt;",
+        "<": "&lt;",
+    }
+    # 拆分 part
     parts = []
     last_index = -1
     depth = 0
@@ -49,6 +65,10 @@ def handle_expression(expr):
         elif c in ")]":
             depth -= 1
         elif c in operators and depth == 0:
+            # unary op 不参与 expression 拆分
+            if c in "-~" and is_unary_op(expr, i):
+                continue
+
             parts.append(expr[last_index + 1:i].strip())
             parts.append(c)
             last_index = i
@@ -108,9 +128,15 @@ def handle_expression(expr):
                 res += "</term>\n"
             # 5. 普通标识符
             else:
-                res += "<term>\n"
-                res += "<identifier>" + part + "</identifier>\n"
-                res += "</term>\n"
+                if part.startswith(("-", "~")):
+                    res += "<term>\n"
+                    res += "<symbol>" + part[0] + "</symbol>\n"
+                    res += handle_expression(part[1:].strip())
+                    res += "</term>\n"
+                else:
+                    res += "<term>\n"
+                    res += "<identifier>" + part + "</identifier>\n"
+                    res += "</term>\n"
     
     return (
         "<expression>\n"
@@ -180,6 +206,6 @@ if __name__ == "__main__":
     #     print("Expression:", expr)
     #     print(handle_expression(expr))
     #     print("-----")
-    expr = 'arr[i + 1] * (x - y)'
+    expr = '-x'
     print("Expression:", expr)
     print(handle_expression(expr))
