@@ -1,89 +1,34 @@
 # chapter_10/expression.py
 
-def handle_expression(expr, is_top_level=True):
+def is_wrapped_by_parentheses(expr: str) -> bool:
+    expr = expr.strip()
+    if not expr or expr[0] != '(' or expr[-1] != ')':
+        return False
+
+    count = 0
+    for i, ch in enumerate(expr):
+        if ch == '(':
+            count += 1
+        elif ch == ')':
+            count -= 1
+
+        # 最外层括号提前闭合 → 不是整体包裹
+        if count == 0 and i < len(expr) - 1:
+            return False
+
+    return count == 0
+
+xml_escape_table = {
+    "&": "&amp;",
+    ">": "&gt;",
+    "<": "&lt;",
+}
+def handle_expression(expr):
     # 合法性检查
     assert type(expr) == str, "Expression must be a string"
     expr = expr.strip()
-
-    # 如果最外层是 () 那就去掉
-    if expr.startswith("(") and expr.endswith(")"):
-        # 用状态机检查括号匹配
-        depth = 0
-        in_string = False
-        is_outer_parentheses = True
-        for i, c in enumerate(expr):
-            # 更新 in_string 状态
-            if c == '"' :
-                in_string = not in_string
-                continue
-
-            # 字符串内的括号不处理
-            if in_string:
-                continue
-
-            if c == "(":
-                depth += 1
-            elif c == ")":
-                depth -= 1
-                if depth == 0 and i != len(expr) - 1:
-                    is_outer_parentheses = False
-                    break
-        if is_outer_parentheses:
-            if is_top_level:
-                return (
-                    "<symbol>(</symbol>\n"
-                    "<expression>\n"
-                    + handle_expression(expr[1:-1].strip(), is_top_level=False)
-                    + "</expression>\n"
-                    "<symbol>)</symbol>\n"
-                )
-            else:
-                return (
-                    "<symbol>(</symbol>\n"
-                    + handle_expression(expr[1:-1].strip(), is_top_level=False)
-                    + "<symbol>)</symbol>\n"
-                )
     
-    # 如果最外层是 [] 那就去掉
-    if expr.startswith("[") and expr.endswith("]"):
-        # 用状态机检查括号匹配
-        depth = 0
-        in_string = False
-        is_outer_brackets = True
-        for i, c in enumerate(expr):
-            # 更新 in_string 状态
-            if c == '"' :
-                in_string = not in_string
-                continue
-
-            # 字符串内的括号不处理
-            if in_string:
-                continue
-
-            if c == "[":
-                depth += 1
-            elif c == "]":
-                depth -= 1
-                if depth == 0 and i != len(expr) - 1:
-                    is_outer_brackets = False
-                    break
-        if is_outer_brackets:
-            if is_top_level:
-                return (
-                    "<symbol>[</symbol>\n"
-                    "<expression>\n"
-                    + handle_expression(expr[1:-1].strip(), is_top_level=False)
-                    + "</expression>\n"
-                    "<symbol>]</symbol>\n"
-                )
-            else:
-                return (
-                    "<symbol>[</symbol>\n"
-                    + handle_expression(expr[1:-1].strip(), is_top_level=False)
-                    + "<symbol>]</symbol>\n"
-                )
-
-    # 拆出顶层运算符
+    # 拆分 part
     operators = set("+-*/&|<>=")
     parts = []
     last_index = -1
@@ -99,9 +44,9 @@ def handle_expression(expr, is_top_level=True):
         if in_string:
             continue
 
-        if c in "([{":
+        if c in "([":
             depth += 1
-        elif c in ")]}":
+        elif c in ")]":
             depth -= 1
         elif c in operators and depth == 0:
             parts.append(expr[last_index + 1:i].strip())
@@ -110,81 +55,68 @@ def handle_expression(expr, is_top_level=True):
     final_part = expr[last_index + 1 :].strip()
     if final_part:
         parts.append(final_part)
-
-    # 多个部分，递归处理
-    if len(parts) > 1:
-        res = ""
-        for i, part in enumerate(parts):
-            if part in operators:
-                res += "<symbol>" + part + "</symbol>\n"
-            else:
-                res += handle_expression(part, is_top_level=False)
-        if is_top_level:
-            return (
-                "<expression>\n"
-                + res
-                + "</expression>\n"
-            )
-        else:
-            return res
     
-    # 单个部分，作为 term 处理
-    term = expr
+    # 遍历 parts, 递归处理
     res = ""
-
-    # 1. 字符串常量
-    if term.startswith('"') and term.endswith('"'):
-        res = "<stringConstant>" + term[1:-1] + "</stringConstant>\n"
-
-    # 2. 整数常量
-    elif term.isdigit():
-        res = "<integerConstant>" + term + "</integerConstant>\n"
-
-    # 3. 数组访问
-    elif "[" in term and term.endswith("]"):
-        var, index = term.split("[", 1)
-        index = index[:-1].strip()
-        res += "<identifier>" + var.strip() + "</identifier>\n"
-        res += "<symbol>[</symbol>\n"
-        res += handle_expression(index, is_top_level=True)
-        res += "<symbol>]</symbol>\n"
-
-    # 4. 子程序调用
-    elif "(" in term and term.endswith(")"):
-        call, args = term.split("(", 1)
-        args = args[:-1].strip()
-
-        if "." in call:
-            obj, func = call.split(".", 1)
-            res += "<identifier>" + obj.strip() + "</identifier>\n"
-            res += "<symbol>.</symbol>\n"
-            res += "<identifier>" + func.strip() + "</identifier>\n"
+    for i, part in enumerate(parts):
+        part = part.strip()
+        if part in operators:
+            res += "<symbol>" + xml_escape_table.get(part, part) + "</symbol>\n"
         else:
-            res += "<identifier>" + call.strip() + "</identifier>\n"
-
-        res += "<symbol>(</symbol>\n"
-        res += handle_expressionList(args)
-        res += "<symbol>)</symbol>\n"
-
-    # 5. 普通标识符
-    else:
-        res = "<identifier>" + term + "</identifier>\n"
-
-    # 是否包 expression
-    if is_top_level:
-        return (
-            "<expression>\n"
-            "<term>\n"
-            + res
-            + "</term>\n"
-            "</expression>\n"
-        )
-    else:
-        return (
-            "<term>\n"
-            + res
-            + "</term>\n"
-        )
+            # 0. 两端为一对()的递归处理
+            if is_wrapped_by_parentheses(part):
+                res += "<term>\n"
+                res += "<symbol>(</symbol>\n"
+                res += handle_expression(part[1:-1].strip())
+                res += "<symbol>)</symbol>\n"
+                res += "</term>\n"
+            # 1. 字符串常量
+            elif part.startswith('"') and part.endswith('"'):
+                res += "<term>\n"
+                res += "<stringConstant>" + part[1:-1] + "</stringConstant>\n"
+                res += "</term>\n"
+            # 2. 整数常量
+            elif part.isdigit():
+                res += "<term>\n"
+                res += "<integerConstant>" + part + "</integerConstant>\n"
+                res += "</term>\n"
+            # 3. 数组访问
+            elif "[" in part and part.endswith("]"):
+                var, index = part.split("[", 1)
+                index = index[:-1].strip()
+                res += "<term>\n"
+                res += "<identifier>" + var.strip() + "</identifier>\n"
+                res += "<symbol>[</symbol>\n"
+                res += handle_expression(index)
+                res += "<symbol>]</symbol>\n"
+                res += "</term>\n"
+            # 4. 子程序调用
+            elif "(" in part and part.endswith(")"):
+                call, args = part.split("(", 1)
+                args = args[:-1].strip()
+                res += "<term>\n"
+                if "." in call:
+                    obj, func = call.split(".", 1)
+                    res += "<identifier>" + obj.strip() + "</identifier>\n"
+                    res += "<symbol>.</symbol>\n"
+                    res += "<identifier>" + func.strip() + "</identifier>\n"
+                else:
+                    res += "<identifier>" + call.strip() + "</identifier>\n"
+                res += "<symbol>(</symbol>\n"
+                res += handle_expressionList(args)
+                res += "<symbol>)</symbol>\n"
+                res += "</term>\n"
+            # 5. 普通标识符
+            else:
+                res += "<term>\n"
+                res += "<identifier>" + part + "</identifier>\n"
+                res += "</term>\n"
+    
+    return (
+        "<expression>\n"
+        + res
+        + "</expression>\n"
+    )
 
 def handle_expressionList(exprList):
     # 合法性检查
@@ -218,11 +150,11 @@ def handle_expressionList(exprList):
     if final_expr:
         exprs.append(final_expr)
     
+    # 处理每个 expression
     for i, expr in enumerate(exprs):
         res += handle_expression(expr)
         if i < len(exprs) - 1:
             res += "<symbol>,</symbol>\n"
-
 
     return (
         "<expressionList>\n"
@@ -231,19 +163,23 @@ def handle_expressionList(exprList):
     )
 
 if __name__ == "__main__":
-    # 测试代码
-    test_expressions = [
-        'x + y * (z - 2)',
-        '"hello" + " " + "world"',
-        'array[5 + i]',
-        'Math.sqrt(4)',
-        '(a + b) * (c - d) / e',
-        'Output.printString("The result is: " + result)',
-        'obj.method(a, b + c, foo())',
-        'arr[i + 1] * (x - y)',
-    ]
+    # # 测试代码
+    # test_expressions = [
+    #     '((y + size) < 254) & ((x + size) < 510)',
+    #     # 'x + y * (z - 2)',
+    #     # '"hello" + " " + "world"',
+    #     # 'array[5 + i]',
+    #     # 'Math.sqrt(4)',
+    #     # '(a + b) * (c - d) / e',
+    #     # 'Output.printString("The result is: " + result)',
+    #     # 'obj.method(a, b + c, foo())',
+    #     # 'arr[i + 1] * (x - y)',
+    # ]
 
-    for expr in test_expressions:
-        print("Expression:", expr)
-        print(handle_expression(expr))
-        print("-----")
+    # for expr in test_expressions:
+    #     print("Expression:", expr)
+    #     print(handle_expression(expr))
+    #     print("-----")
+    expr = 'arr[i + 1] * (x - y)'
+    print("Expression:", expr)
+    print(handle_expression(expr))

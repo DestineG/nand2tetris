@@ -76,3 +76,59 @@ def skip_whitespace(s: str, i: int) -> int:
     while i < len(s) and s[i].isspace():
         i += 1
     return i
+
+# 判断表达式是否可以被进一步分解
+def can_decompose(expr: str) -> bool:
+    assert isinstance(expr, str)
+    expr = expr.strip()
+
+    if not expr:
+        return False
+
+    # 1️⃣ 能否剥离最外层 () 或 []
+    def has_outer_pair(left, right):
+        if not (expr.startswith(left) and expr.endswith(right)):
+            return False
+        depth = 0
+        in_string = False
+        for i, c in enumerate(expr):
+            if c == '"':
+                in_string = not in_string
+                continue
+            if in_string:
+                continue
+            if c == left:
+                depth += 1
+            elif c == right:
+                depth -= 1
+                if depth == 0 and i != len(expr) - 1:
+                    return False
+        return depth == 0
+
+    if has_outer_pair("(", ")") or has_outer_pair("[", "]"):
+        return True
+
+    # 2️⃣ 顶层运算符
+    operators = set("+-*/&|<>=")
+    depth = 0
+    in_string = False
+    for c in expr:
+        if c == '"':
+            in_string = not in_string
+            continue
+        if in_string:
+            continue
+        if c in "([{":
+            depth += 1
+        elif c in ")]}":
+            depth -= 1
+        elif c in operators and depth == 0:
+            return True
+
+    # 3️⃣ 数组访问 / 子程序调用
+    if "[" in expr and expr.endswith("]"):
+        return True
+    if "(" in expr and expr.endswith(")"):
+        return True
+
+    return False
