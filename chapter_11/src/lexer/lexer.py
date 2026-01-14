@@ -169,7 +169,7 @@ class Lexer:
         tokens (list of tuples): 词法单元列表
         current_index (int): 当前词法单元索引
     """
-    def __init__(self, jack_file_path):
+    def __init__(self, jack_file_path=None):
         lines = read_jack_file(jack_file_path)
         code_lines = remove_comments(lines)
         self.tokens = tokenizer(code_lines)

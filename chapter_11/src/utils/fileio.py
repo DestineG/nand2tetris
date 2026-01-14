@@ -5,7 +5,7 @@ from typing import List
 # demo jack file
 demo_jack_file = r"D:\Data\resource\计算机系统要素资源\projects\chapter_11\inputs\Square.jack"
 
-def read_jack_file(file_path=demo_jack_file) -> List[str]:
+def read_jack_file(file_path) -> List[str]:
     """
     读取指定路径的 .jack 文件内容
 
@@ -15,7 +15,9 @@ def read_jack_file(file_path=demo_jack_file) -> List[str]:
     返回:
         List[str]: 文件内容按行分割的字符串列表
     """
-    assert file_path.endswith('.jack'), "文件必须是 .jack 格式"
+    if file_path is None:
+        file_path = demo_jack_file
+    assert file_path.endswith('.jack'), f"文件必须是 .jack 格式，但得到 {file_path}"
 
     try:
         with open(file_path, 'r', encoding='utf-8') as file:
@@ -34,7 +36,7 @@ def write_vm_file(file_path, vm_code: List[str]) -> None:
 
     返回: None
     """
-    assert file_path.endswith('.vm'), "文件必须是 .vm 格式"
+    assert file_path.endswith('.vm'), f"文件必须是 .vm 格式，但得到 {file_path}"
 
     try:
         with open(file_path, 'w', encoding='utf-8') as file:

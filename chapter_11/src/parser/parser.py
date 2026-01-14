@@ -4,7 +4,7 @@ from ..lexer.lexer import Lexer, token_types_alias
 
 
 class Parser:
-    def __init__(self, jack_file_path):
+    def __init__(self, jack_file_path=None):
         self.lexer = Lexer(jack_file_path)
         # lexer 初始化后，指向第一个 token
         assert self.lexer.has_more_tokens(), "输入文件为空或无有效词法单元"
@@ -242,8 +242,7 @@ class Parser:
 
 if __name__ == "__main__":
     # 简单测试
-    jack_path = 'inputs/Square.jack'
-    parser = Parser(jack_path)
+    parser = Parser()
     print("开始解析类...")
     parser.compile_class()
     print("解析完成")
