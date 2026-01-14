@@ -21,8 +21,8 @@ def parser(jack_path, output_path):
         with open(output_path, "w", encoding="utf-8") as f:
             f.write(xml)
     return xml
-
+ 
 if __name__ == "__main__":
-    jack_file_path = r"chapter_10\ArrayTest\Main.jack"
-    output_file_path = r"chapter_10\ArrayTest\MainCustom.xml"
+    jack_file_path = r"chapter_10\Square\Main.jack"
+    output_file_path = r"chapter_10\Square\MainCustom.xml"
     parser(jack_file_path, output_file_path)

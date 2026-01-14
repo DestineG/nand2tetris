@@ -206,6 +206,6 @@ if __name__ == "__main__":
     #     print("Expression:", expr)
     #     print(handle_expression(expr))
     #     print("-----")
-    expr = '-(a + b)'
+    expr = 'i * (-j)'
     print("Expression:", expr)
     print(handle_expression(expr))

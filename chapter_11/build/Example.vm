@@ -1,0 +1,4 @@
+function Main.main 0
+push constant 0
+call Sys.init 0
+return
