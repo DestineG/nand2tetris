@@ -85,6 +85,6 @@ def vm_translator(input_path, output_path):
 
 
 if __name__ == "__main__":
-    input_path = r"chapter_8\FunctionCalls\FibonacciElement"
-    output_path = r"chapter_8\FunctionCalls\FibonacciElement\FibonacciElement.hack"
+    input_path = r"D:\Data\resource\计算机系统要素资源\projects\chapter_11\inputs\Main.vm"
+    output_path = r"D:\Data\resource\计算机系统要素资源\projects\chapter_11\inputs\Main.hack"
     vm_translator(input_path, output_path)

@@ -174,6 +174,13 @@ class Lexer:
         code_lines = remove_comments(lines)
         self.tokens = tokenizer(code_lines)
         self.current_index = -1
+        self.class_name = None
+    
+    def set_class_name(self, class_name):
+        self.class_name = class_name
+    
+    def get_class_name(self):
+        return self.class_name
 
     def has_more_tokens(self) -> bool:
         return self.current_index + 1 < len(self.tokens)

@@ -32,16 +32,14 @@ jack_compiler/
 │       ├── __init__.py
 │       └── utils.py
 ├── inputs/                    # Jack 源程序文件，作为测试输入
-│   ├── Main.jack
-│   └── Square.jack
+│   └── *.jack
 ├── build/                     # 编译器生成的 VM 文件
 └── docs/                      # 项目相关文档
 ```
 
 ---
 
-## 开发建议
+## 小记
 
-* 先实现 **lexer**，再实现 **parser**，最后实现 **semantic** 和 **codegen**。
-* 建议使用 **测试驱动开发（TDD）**。
-* 输出文件统一存放在 `output/` 目录，方便管理和验证。
+- 使用 inputs 目录下的 fibonacci Jack 文件进行编译，编译得到 vm 文件在虚拟机上运行结果正确
+![alt text](./figures/image.png)
